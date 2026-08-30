@@ -43,7 +43,7 @@ jobs:
         run: flutter test
 
       - name: Build Web Application
-        run: flutter build web --release
+        run: flutter build web --release --base-href "/Learning_for_kids/"
 
       - name: Upload GitHub Pages Artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

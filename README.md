@@ -55,8 +55,8 @@ An autonomous, interactive educational platform featuring an animated teacher (*
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/kids-quest.git
-cd kids-quest
+git clone https://github.com/asraihan/Learning_for_kids.git
+cd Learning_for_kids
 ```
 
 ### 2. Install Dependencies
