@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="kids_quest">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>kids_quest</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script>
+    let britishVoice = null;
+
+    function initBritishVoices() {
+      if (!('speechSynthesis' in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      // Search for British / UK English voices
+      britishVoice = voices.find(v => v.lang === 'en-GB' || v.lang === 'en_GB' || v.name.includes('UK') || v.name.includes('British') || v.name.includes('Hazel') || v.name.includes('Susan') || v.name.includes('Sonia') || v.name.includes('George'))
+        || voices.find(v => v.lang.startsWith('en'))
+        || voices[0];
+      if (britishVoice) {
+        console.log("Selected British Voice:", britishVoice.name, britishVoice.lang);
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = initBritishVoices;
+      initBritishVoices();
+    }
+
+    window.speakBritishTeacher = function(text) {
+      if (!('speechSynthesis' in window)) {
+        console.warn('SpeechSynthesis not supported on this browser.');
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        initBritishVoices();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        if (britishVoice) {
+          utterance.voice = britishVoice;
+          utterance.lang = britishVoice.lang || 'en-GB';
+        } else {
+          utterance.lang = 'en-GB';
+        }
+        utterance.rate = 0.93; // Polished, clear British accent cadence
+        utterance.pitch = 1.15; // Friendly and upbeat
+        utterance.volume = 1.0;
+
+        utterance.onstart = function() {
+          window.dispatchEvent(new CustomEvent('teacher-speaking-start'));
+        };
+        utterance.onend = function() {
+          window.dispatchEvent(new CustomEvent('teacher-speaking-end'));
+        };
+        utterance.onerror = function(err) {
+          console.error('SpeechSynthesis error:', err);
+          window.dispatchEvent(new CustomEvent('teacher-speaking-end'));
+        };
+
+        window.speechSynthesis.speak(utterance);
+        console.log("Spoken with British voice:", text);
+      } catch(e) {
+        console.error('TTS speech error:', e);
+      }
+    };
+
+    window.stopTeacherSpeech = function() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Character Prototype</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #fafafa; font-family: sans-serif;}
+        #riveCanvas { width: 100vw; height: 100vh; display: block; background: #e0f7fa;} /* Light teal background */
+        #instructions { position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.7); padding: 5px; border-radius: 4px; pointer-events: none;}
+    </style>
+</head>
+<body>
+
+    <!-- This is where the green girl will appear -->
+    <canvas id="riveCanvas"></canvas>
+    
+    <div id="instructions">Move your mouse to test eye-tracking</div>
+
+    <!-- 1. Load the Rive web runtime directly from a CDN -->
+    <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
+
+    <script>
+        // 2. Configuration for your character
+        const riveFileUrl = 'https://cdn.rive.app/animations/vehicles.riv'; // <--- PLACEHOLDER RIVE FILE
+        const stateMachineName = 'ButtonStateMachine'; // <--- PLACEHOLDER STATE MACHINE NAME
+        const canvasId = 'riveCanvas';
+
+        let riveInstance;
+        let pointerXInput, pointerYInput;
+
+        // 3. Initialize the Rive animation
+        function initRive() {
+            riveInstance = new rive.Rive({
+                src: riveFileUrl,
+                canvas: document.getElementById(canvasId),
+                autoplay: true,
+                stateMachines: stateMachineName, // Use the visual logic brain
+                onLoad: () => {
+                    console.log('Rive Character Loaded Successfully!');
+                    riveInstance.resizeDrawingSurfaceToCanvas();
+                    
+                    // Access the "Sensors" you defined in the Rive editor
+                    const inputs = riveInstance.stateMachineInputs(stateMachineName);
+                    pointerXInput = inputs.find(i => i.name === 'pointerX'); // Name of X-axis sensor
+                    pointerYInput = inputs.find(i => i.name === 'pointerY'); // Name of Y-axis sensor
+                },
+            });
+        }
+
+        // 4. Set up the Mouse Tracking "Sensor"
+        const canvas = document.getElementById(canvasId);
+        canvas.addEventListener('mousemove', (event) => {
+            if (!pointerXInput || !pointerYInput) return;
+
+            const rect = canvas.getBoundingClientRect();
+            
+            // Calculate the mouse position relative to the canvas
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            // Normalize the coordinates (0 to 1) so Rive can understand them easily
+            // 0 is far left/top, 1 is far right/bottom
+            const normalizedX = mouseX / rect.width;
+            const normalizedY = mouseY / rect.height;
+
+            // 5. Feed the sensor data DIRECTLY into the character's brain
+            pointerXInput.value = normalizedX * 100; // State Machine might expect 0-100 scale
+            pointerYInput.value = normalizedY * 100;
+        });
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            if (riveInstance) riveInstance.resizeDrawingSurfaceToCanvas();
+        });
+
+        // Start the application
+        initRive();
+
+    </script>
+</body>
+</html>
